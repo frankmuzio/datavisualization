@@ -1,8 +1,10 @@
 ---
-title: "Eider Feathers Figure Practice #1"
+title: 'Eider Feathers Figure Practice #1'
 author: "Frank Muzio"
 date: "2/10/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r}

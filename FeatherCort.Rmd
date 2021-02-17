@@ -1,8 +1,10 @@
 ---
-title: "Feather Cort Levels Figure Practice #2"
+title: 'Feather Cort Levels Figure Practice #2'
 author: "Frank Muzio"
 date: "2/17/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Practice Figures #2
