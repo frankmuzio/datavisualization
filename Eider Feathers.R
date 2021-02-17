@@ -44,3 +44,4 @@ h+geom_point()+
   geom_smooth(method="lm", se=TRUE, color="red", formula=y~x)+
   labs(x="Length of Barbule (nm)", y = "Total Number of Nodes")
 
+#Practice 
