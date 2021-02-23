@@ -1,0 +1,133 @@
+---
+title: "GGmapPractice"
+author: "Frank Muzio"
+date: "2/22/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+I have zero experience working with plotting geospatial data using R, all of my experience has been arcGIS. Decided to try and learn something new and get some practice with ggmap. Took me a while to get the API key figured out but it appears I got it all working. I used a tutorial on datacamp to walk me through the basics. The housing sales data used in this tutorial was not offered by datacamp to download, only to be used on their website, luckily I found it elsewhere and was able to work remotely in my Rstudio. While going through the tutorial, I branched off and started trying things on my own. I took what I learned going through the tutorial and applied it to Ridgeway's rail occurrence data I found on GBIF.org. Given the large amount of data, I narrowed the occurrences down to the start of 2019 through the end of 2020 and only looking at those found in Mexico.
+
+
+```{r, eval=TRUE, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+#ggmap tutorial
+#setwd
+setwd("C:/Users/frank/OneDrive/Desktop/R CSVs")
+
+#packages
+
+
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(data.table)
+library(ggrepel)
+library(tidyverse)
+library(ggmap)
+
+#ggmap API
+ggmap::register_google(key = "AIzaSyDrZeidnROxWzEmn4rBn87fCXWqWLAt3QI")
+
+#load sales data
+sales = readRDS("01_corv_sales.rds")
+```
+# Using Ridgeway's Rail Data and ggmap
+
+```{r}
+#Trying with new Ridgeway's Rail data
+setwd("C:/Users/frank/OneDrive/Desktop/R CSVs")
+rr<-read.csv("Ridgeway'sRail.csv", fileEncoding="UTF-8-BOM")
+
+mexico <- c(lon = -110.1400, lat = 26.57390) #create mexico coordinates
+mex.map<-get_map(mexico, zoom = 5, maptype = "terrain")
+ggmap(mex.map)+
+  geom_point(aes(Log, Lat, color=Species), data = rr, shape=15)+
+  xlab(expression(paste("Longitude"))) +
+  ylab(expression(paste("Latitude ")))+
+  ggtitle("Occurrences of Ridgeway's Rail in Mexico (2019-2020)")+
+  scale_color_manual(values=c("red3"))+
+  theme(strip.text.x = element_blank(),
+      strip.background = element_rect(colour="white", fill="white"),
+      legend.position=c(.25,.25))
+
+ 
+
+```
+
+# Doing the same thing without ggmap
+```{r}
+library("rnaturalearth")
+library("rnaturalearthdata")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+
+(sites <- data.frame(longitude = c(-80.144005, -80.109), latitude = c(26.479005, 
+                                                                      26.83)))
+ggplot(data = world) +
+  geom_sf() +
+  coord_sf(xlim = c(-118, -102), ylim = c(17, 35), expand = TRUE)+
+  geom_point(aes(Log, Lat, color=Species), data = rr, shape=15)+
+  xlab(expression(paste("Longitude"))) +
+  ylab(expression(paste("Latitude ")))+
+  ggtitle("Occurrences of Ridgeway's Rail (2019-2020)")+
+  scale_color_manual(values=c("red3"))+
+  theme(strip.text.x = element_blank(),
+        strip.background = element_rect(colour="white", fill="white"),
+        legend.position=c(.25,.25))
+```
+
+#Practice with Corvallis data
+```{r}
+#Practice with Corvallis data
+corvallis <- c(lon = -123.2620, lat = 44.5646) #create corvallis coordinates
+map_5<-get_map(corvallis, zoom = 5, scale = 1) # set up get_map with 5 zoom
+ggmap(map_5) #print
+corvallis_map<-get_map(corvallis, zoom = 13, scale = 1) #change zoom to 13
+ggmap(corvallis_map)#print
+
+
+
+#print sales onto corvallis map
+ggmap(corvallis_map) +
+  geom_point(aes(lon, lat), data = sales)
+
+#add color based on year built
+ggmap(corvallis_map) +
+  geom_point(aes(lon, lat, color=year_built, size = bedrooms), data = sales)
+
+
+# map based on squarefootage
+ggmap(corvallis_map) +
+  geom_point(aes(lon, lat, color=price / finished_squarefeet), data = sales)
+
+
+#display on satellite map
+corvallis_map_sat <- get_map(corvallis, zoom = 13, maptype="satellite")
+ggmap(corvallis_map_sat) +
+    geom_point(aes(lon, lat, color = year_built), data = sales)
+
+#display on terrain
+corvallis_map_ton <- get_map(corvallis, zoom = 13, maptype="toner")
+ggmap(corvallis_map_ton) +
+  geom_point(aes(lon, lat, color = year_built), data = sales)+
+  xlab(expression(paste("Longitude"))) +
+  ylab(expression(paste("Latitude ")))
+
+#add base_layer and facet_wrap
+ggmap(corvallis_map_ton, base_layer = ggplot(sales, aes(lon, lat))) +
+  geom_point(aes(color = class)) +
+  facet_wrap(~ class)
+
+
+#plot housing using qmplot() based on bedrooms and month
+qmplot(lon, lat, data = sales, 
+       geom = "point", color = bedrooms) +
+  facet_wrap(~ month)
+```
+
